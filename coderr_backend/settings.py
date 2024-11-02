@@ -18,9 +18,7 @@ import sys
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Add the directory containing the apps to the Python path
-APPS_DIR = BASE_DIR / 'apps'
-sys.path.insert(0, str(APPS_DIR))
-
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -38,7 +36,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,10 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'info',
-    'offers',
-    'orders',
-    'users',
+    'apps.info',
+    'apps.offers',
+    'apps.orders',
+    'apps.users',
 ]
 
 MIDDLEWARE = [

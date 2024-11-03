@@ -5,9 +5,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
-from .serializers import LoginSerializer, ProfileSerializer
-from apps.users.models import Profile
-from rest_framework.permissions import IsAuthenticated
+from .serializers import LoginSerializer, ProfileSerializer, ReviewSerializer
+from apps.users.models import Profile, Review
+from django.contrib.auth.models import User
+import re
+
 
 class ProfileList(generics.ListAPIView):
     """
@@ -23,6 +25,27 @@ class ProfileList(generics.ListAPIView):
         if profile_type:
             queryset = queryset.filter(type=profile_type)
         return queryset
+    
+    # def list(self, request, *args, **kwargs):
+    #     response = super().list(request, *args, **kwargs)
+        
+    #     customized_data = []
+    #     for item in response.data:
+    #         customized_data.append({
+    #             "user": {
+    #                 "pk": item["user"],
+    #                 "username": item["username"],
+    #                 "first_name": item["first_name"],
+    #                 "last_name": item["last_name"]
+    #             },
+    #             "file": item["file"],
+    #             "location": item["location"],
+    #             "tel": item["tel"],
+    #             "description": item["description"],
+    #             "working_hours": item["working_hours"],
+    #             "type": item["type"]
+    #         })
+    #     return Response(customized_data, status=status.HTTP_200_OK)
 
 
 class ProfileDetail(APIView):
@@ -48,8 +71,19 @@ class ProfileDetail(APIView):
         data.pop('type', None)
         data.pop('created_at', None)
 
+        if data.get('email'):
+            # Überprüfe, ob die E-Mail-Adresse bereits verwendet wird (außer vom aktuellen Benutzer)
+            if User.objects.filter(email=data.get('email')).exclude(pk=profile.user.pk).exists():
+                return Response({"detail": "Diese E-Mail-Adresse wird bereits verwendet."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Überprüfe das Format der E-Mail-Adresse
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', data.get('email')):
+                return Response({"detail": "E-Mail-Format ist ungültig."}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = ProfileSerializer(profile, data=data, partial=True)
         if serializer.is_valid():
+            profile.user.email = data.get('email', profile.user.email)
+            profile.user.save()
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -116,3 +150,21 @@ class RegistrationView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ReviewView(APIView):
+    """
+    Create a review for a business user.
+
+    - **POST**: Creates a review for a business user.
+    - **GET**: Retrieves all reviews for a business user.
+    """
+    def post(self, request):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+    
+    def get(self, request):
+        reviews = Review.objects.all()
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK) 

@@ -1,14 +1,11 @@
 import re
-from django.forms import ValidationError
 from rest_framework import serializers 
 from apps.users.models import Profile
 from django.contrib.auth.models import User
-from rest_framework.validators import UniqueValidator
+from apps.users.models import Review
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
-    first_name = serializers.SerializerMethodField()
-    last_name = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
 
@@ -19,12 +16,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj):
         return obj.user.username
-
-    def get_first_name(self, obj):
-        return obj.user.first_name
-
-    def get_last_name(self, obj):
-        return obj.user.last_name
 
     def get_email(self, obj):
         return obj.user.email   
@@ -97,7 +88,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
 
-        type = validated_data.get('type')
-        Profile.objects.create(user=user, type=type)
+        Profile.objects.create(user=user, type=validated_data['type'])
 
         return user
+    
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['business_user', 'reviewer', 'rating', 'description', 'created_at', 'updated_at']     

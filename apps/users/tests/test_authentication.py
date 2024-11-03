@@ -3,7 +3,9 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.urls import reverse
-class RegistrationTestCase(APITestCase):
+
+
+class AuthenticationTests(APITestCase):
 
     def setUp(self):
         self.url = reverse('registration')

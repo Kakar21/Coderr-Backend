@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from apps.users.api import views as users_views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,4 +29,8 @@ urlpatterns = [
     path('api/profiles/', include('apps.users.api.urls')),
     path('api/registration/', users_views.RegistrationView.as_view(), name='registration'),
     path('api/login/', users_views.LoginView.as_view(), name='login'),
+    path('api/reviews/', users_views.ReviewView.as_view(), name='review-list'),
+
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

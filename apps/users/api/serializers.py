@@ -14,7 +14,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', \
+                   'description', 'working_hours', 'type', 'email', 'created_at']
 
     def get_username(self, obj):
         return obj.user.username
@@ -30,13 +31,31 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_created_at(self, obj):
         return obj.user.date_joined
+    
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        username = data.get('username')
+        password = data.get('password')
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"detail": "Falsche Anmeldedaten."})
+
+        if not user.check_password(password):
+            raise serializers.ValidationError({"detail": "Falsche Anmeldedaten."})
+
+        data['user'] = user
+        return data
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
     repeated_password = serializers.CharField(write_only=True)
     type = serializers.CharField(write_only=True)
-    username = serializers.CharField(write_only=True)
-    email = serializers.EmailField(write_only=True)
 
     class Meta:
         model = User
@@ -47,23 +66,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
             }
         }
 
-
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise ValidationError("Dieser Benutzername ist bereits vergeben.")
-        return value
-    
-
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise ValidationError("Diese E-Mail-Adresse wird bereits verwendet.")
-        return value
-
     def validate(self, data):
         pw = data['password']
         repeated_pw = data['repeated_password']
         errors = {}
-        print(data)
 
         if User.objects.filter(username=data['username']).exists():
             errors.setdefault('username', []).append("Dieser Benutzername ist bereits vergeben.")
@@ -82,9 +88,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         
         if errors:
             raise serializers.ValidationError(errors, code=400)
-        
-        print('validation successful')
-        
+
         return data 
     
 

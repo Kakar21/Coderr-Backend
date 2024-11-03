@@ -23,6 +23,8 @@ urlpatterns = [
     path('api/info/', include('apps.info.api.urls')),
     path('api/offers/', include('apps.offers.api.urls')),
     path('api/orders/', include('apps.orders.api.urls')),
-    path('api/users/', include('apps.users.api.urls')),
+    path('api/profile/', include('apps.users.api.urls')),
+    path('api/profiles/', include('apps.users.api.urls')),
     path('api/registration/', users_views.RegistrationView.as_view(), name='registration'),
+    path('api/login/', users_views.LoginView.as_view(), name='login'),
 ]

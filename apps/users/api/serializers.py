@@ -97,29 +97,37 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['id', 'business_user', 'reviewer', 'rating', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['reviewer']
 
     def validate(self, data):
         user = self.context['request'].user
 
-        # Überprüfen, ob der Nutzer ein "customer" ist
-        if user.profile.type != 'customer':
-            raise serializers.ValidationError(
-                detail={"error": "Nur Kunden können Bewertungen abgeben."},
-                code=status.HTTP_403_FORBIDDEN)
+        if self.context['request'].method == "POST":
+            # if user.profile.type != 'customer':
+            #     raise serializers.ValidationError(
+            #         detail={"error": "Nur Kunden können Bewertungen abgeben."},
+            #         code=status.HTTP_403_FORBIDDEN)
+        
+            if Profile.objects.get(user=data['business_user']).type != 'business':
+                raise serializers.ValidationError(
+                    detail={"error": "Es können nur Geschäftsnutzer bewertet werden."},
+                    code=status.HTTP_400_BAD_REQUEST)
 
-        # Überprüfen, ob der aktuelle Nutzer der Reviewer ist
-        if data['reviewer'].id != self.context['request'].user.id:
-            raise serializers.ValidationError(
-                detail={"error": "Der Reviewer muss der aktuelle Nutzer sein."},
-                code=status.HTTP_403_FORBIDDEN)
-
-        # Überprüfen, ob bereits eine Bewertung für diesen Geschäftsnutzer existiert
-        if Review.objects.filter(business_user=data['business_user'], reviewer=data['reviewer']).exists():
-            raise serializers.ValidationError(
+            if Review.objects.filter(business_user=data['business_user'], reviewer=user).exists():
+                raise serializers.ValidationError(
                 detail={"error": "Du hast diesen User schon einmal bewertet."},
                 code=status.HTTP_400_BAD_REQUEST)
 
         return data
+    
+    def update(self, instance, validated_data):
+        if self.context['request'].method == "PATCH":
+            validated_data.pop('business_user', None)
+        return super().update(instance, validated_data)
+    
+    def create(self, validated_data):
+        validated_data['reviewer'] = self.context['request'].user
+        return super().create(validated_data)
     
 
         

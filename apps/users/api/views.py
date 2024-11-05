@@ -11,6 +11,9 @@ from django.contrib.auth.models import User
 import re
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from .permissions import IsReviewerOrReadOnly, IsCustomerOrReadOnly
+from rest_framework.permissions import IsAuthenticated
+
 
 class ProfileList(generics.ListAPIView):
     """
@@ -27,26 +30,26 @@ class ProfileList(generics.ListAPIView):
             queryset = queryset.filter(type=profile_type)
         return queryset
     
-    # def list(self, request, *args, **kwargs):
-    #     response = super().list(request, *args, **kwargs)
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
         
-    #     customized_data = []
-    #     for item in response.data:
-    #         customized_data.append({
-    #             "user": {
-    #                 "pk": item["user"],
-    #                 "username": item["username"],
-    #                 "first_name": item["first_name"],
-    #                 "last_name": item["last_name"]
-    #             },
-    #             "file": item["file"],
-    #             "location": item["location"],
-    #             "tel": item["tel"],
-    #             "description": item["description"],
-    #             "working_hours": item["working_hours"],
-    #             "type": item["type"]
-    #         })
-    #     return Response(customized_data, status=status.HTTP_200_OK)
+        customized_data = []
+        for item in response.data:
+            customized_data.append({
+                "user": {
+                    "pk": item["user"],
+                    "username": item["username"],
+                    "first_name": item["first_name"],
+                    "last_name": item["last_name"]
+                },
+                "file": item["file"],
+                "location": item["location"],
+                "tel": item["tel"],
+                "description": item["description"],
+                "working_hours": item["working_hours"],
+                "type": item["type"]
+            })
+        return Response(customized_data, status=status.HTTP_200_OK)
 
 
 class ProfileDetail(APIView):
@@ -151,7 +154,7 @@ class RegistrationView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ReviewView(generics.GenericAPIView):
+class ReviewList(generics.GenericAPIView):
     """
     Create a review for a business user.
 
@@ -163,6 +166,7 @@ class ReviewView(generics.GenericAPIView):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['business_user_id', 'reviewer_id']
     ordering_fields = ['updated_at', 'rating']
+    permission_classes = [IsAuthenticated, IsCustomerOrReadOnly]
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -175,3 +179,37 @@ class ReviewView(generics.GenericAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a review instance.
+
+    - **GET**: Retrieve a specific review by ID.
+    - **PATCH**: Partially update a specific review by ID.
+    - **DELETE**: Delete a specific review by ID.
+    """
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated, IsReviewerOrReadOnly]
+
+
+    # def get_object(self):
+    #     """
+    #     Retrieve the review instance and check if the authenticated user is the reviewer.
+    #     """
+    #     review = super().get_object()
+
+    #     if self.request.method in ['PATCH', 'DELETE'] and review.reviewer != self.request.user:
+    #         raise PermissionDenied("Du kannst nur deine eigenen Bewertungen bearbeiten oder löschen.")
+    #     return review
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+

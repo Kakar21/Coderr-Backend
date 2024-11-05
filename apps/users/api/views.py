@@ -9,7 +9,8 @@ from .serializers import LoginSerializer, ProfileSerializer, ReviewSerializer
 from apps.users.models import Profile, Review
 from django.contrib.auth.models import User
 import re
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 class ProfileList(generics.ListAPIView):
     """
@@ -150,21 +151,27 @@ class RegistrationView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ReviewView(APIView):
+class ReviewView(generics.GenericAPIView):
     """
     Create a review for a business user.
 
     - **POST**: Creates a review for a business user.
-    - **GET**: Retrieves all reviews for a business user.
+    - **GET**: Retrieves all reviews for a business user, with filtering by `business_user_id`.
     """
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['business_user_id', 'reviewer_id']
+    ordering_fields = ['updated_at', 'rating']
+
     def post(self, request):
-        serializer = ReviewSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request):
-        reviews = Review.objects.all()
-        serializer = ReviewSerializer(reviews, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK) 
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

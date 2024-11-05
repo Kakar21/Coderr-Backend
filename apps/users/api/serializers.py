@@ -1,5 +1,5 @@
 import re
-from rest_framework import serializers 
+from rest_framework import serializers, status
 from apps.users.models import Profile
 from django.contrib.auth.models import User
 from apps.users.models import Review
@@ -96,4 +96,30 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['business_user', 'reviewer', 'rating', 'description', 'created_at', 'updated_at']     
+        fields = ['id', 'business_user', 'reviewer', 'rating', 'description', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        user = self.context['request'].user
+
+        # Überprüfen, ob der Nutzer ein "customer" ist
+        if user.profile.type != 'customer':
+            raise serializers.ValidationError(
+                detail={"error": "Nur Kunden können Bewertungen abgeben."},
+                code=status.HTTP_403_FORBIDDEN)
+
+        # Überprüfen, ob der aktuelle Nutzer der Reviewer ist
+        if data['reviewer'].id != self.context['request'].user.id:
+            raise serializers.ValidationError(
+                detail={"error": "Der Reviewer muss der aktuelle Nutzer sein."},
+                code=status.HTTP_403_FORBIDDEN)
+
+        # Überprüfen, ob bereits eine Bewertung für diesen Geschäftsnutzer existiert
+        if Review.objects.filter(business_user=data['business_user'], reviewer=data['reviewer']).exists():
+            raise serializers.ValidationError(
+                detail={"error": "Du hast diesen User schon einmal bewertet."},
+                code=status.HTTP_400_BAD_REQUEST)
+
+        return data
+    
+
+        

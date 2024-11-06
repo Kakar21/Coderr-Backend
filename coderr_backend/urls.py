@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from apps.users.api import views as users_views
 from django.conf.urls.static import static
+from apps.offers.api import views as offers_views
 from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/info/', include('apps.info.api.urls')),
     path('api/offers/', include('apps.offers.api.urls')),
+    path('api/offerdetails/<int:pk>/', offers_views.OfferDetailView.as_view(), name='offerdetail-detail'),
     path('api/orders/', include('apps.orders.api.urls')),
     path('api/profile/', include('apps.users.api.urls')),
     path('api/profiles/', include('apps.users.api.urls')),

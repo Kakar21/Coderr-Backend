@@ -1,8 +1,12 @@
-from rest_framework import viewsets 
-from .serializers import OffersSerializer
-from apps.offers.models import Offers
+from rest_framework import generics 
+from .serializers import OfferSerializer
+from apps.offers.models import Offer
 
-class OffersViewSet(viewsets.ModelViewSet):
-    queryset = Offers.objects.all()
-    serializer_class = OffersSerializer
-    
+class OfferListView(generics.ListCreateAPIView):
+    queryset = Offer.objects.all()
+    serializer_class = OfferSerializer
+
+class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Offer.objects.all()
+    serializer_class = OfferSerializer
+

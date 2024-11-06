@@ -8,7 +8,7 @@ class Profile(models.Model):
     # username = models.CharField(max_length=254, unique=True)
     first_name = models.CharField(max_length=254)
     last_name = models.CharField(max_length=254)
-    file = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    file = models.ImageField(upload_to='images/profiles/', null=True, blank=True)
     location = models.CharField(max_length=254)
     tel = models.CharField(max_length=254)
     description = models.TextField()

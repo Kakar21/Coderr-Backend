@@ -1,16 +1,21 @@
 from rest_framework import serializers 
-from apps.offers.models import Offer, OfferDetail
+from apps.offers.models import Offer, Offerdetail
 from apps.users.api.serializers import ProfileSerializer
 from django.urls import reverse
 
-class OfferDetailSerializer(serializers.ModelSerializer):
+class OfferdetailsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OfferDetail
+        model = Offerdetail
         fields = [
             'id', 'title', 'revisions', 'delivery_time_in_days',
             'price', 'features', 'offer_type'
         ]
 
+    def validate_revisions(self, value):
+        if value < -1:
+            raise serializers.ValidationError("Revisions cannot be less than 0.")
+        return value
+    
     def validate_features(self, value):
         if not value or len(value) < 1:
             raise serializers.ValidationError("At least one feature is required.")
@@ -18,7 +23,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferSerializer(serializers.ModelSerializer):
-    details = serializers.SerializerMethodField()
+    details = OfferdetailsSerializer(many=True, required=True, write_only=True)
     user_details = ProfileSerializer(source='user.profile', read_only=True)
 
     class Meta:
@@ -28,11 +33,19 @@ class OfferSerializer(serializers.ModelSerializer):
             'updated_at', 'details', 'min_price', 'min_delivery_time', 
             'user_details'
         ]
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         
+        details_representation = [
+            {
+                "id": detail.id,
+                "url": reverse('offerdetail-detail', kwargs={'pk': detail.id})
+            }
+            for detail in instance.details.all()
+        ]
+
         user_details = representation.get('user_details')
         if user_details:
             filtered_user_details = {
@@ -40,20 +53,11 @@ class OfferSerializer(serializers.ModelSerializer):
                 'last_name': user_details.get('last_name'),
                 'username': user_details.get('username'),
             }
-            representation['user_details'] = filtered_user_details
-        
-        return representation
-    
 
-    def get_details(self, obj):
-        request = self.context.get('request')
-        return [
-            {
-                "id": detail.id,
-                "url": reverse('offerdetail-detail', kwargs={'pk': detail.id})
-            }
-            for detail in obj.details.all()
-        ]
+        representation['details'] = details_representation
+        representation['user_details'] = filtered_user_details
+
+        return representation
 
     def validate(self, data):
         details = self.initial_data.get('details')
@@ -77,6 +81,8 @@ class OfferSerializer(serializers.ModelSerializer):
         offer = Offer.objects.create(user=user, **validated_data)
         
         for detail_data in details_data:
-            OfferDetail.objects.create(offer=offer, **detail_data)
+            Offerdetail.objects.create(offer=offer, **detail_data)
+
+        offer.update_min_values()
         
         return offer

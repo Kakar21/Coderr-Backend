@@ -86,3 +86,52 @@ class OfferSerializer(serializers.ModelSerializer):
         offer.update_min_values()
         
         return offer
+
+
+class OfferDetailSerializer(serializers.ModelSerializer):
+    details = OfferdetailsSerializer(many=True, required=False)
+    user_details = ProfileSerializer(source='user.profile', read_only=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description', 'created_at', 
+            'updated_at', 'details', 'min_price', 'min_delivery_time', 
+            'user_details'
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        user_details = representation.get('user_details')
+        if user_details:
+            filtered_user_details = {
+                'first_name': user_details.get('first_name'),
+                'last_name': user_details.get('last_name'),
+                'username': user_details.get('username'),
+            }
+
+        representation['user_details'] = filtered_user_details
+
+        return representation
+    
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        instance = super().update(instance, validated_data)
+        
+        if details_data:
+            for detail_data in details_data:
+                offer_type = detail_data.get('offer_type')
+                if offer_type:
+                    detail_instance = instance.details.filter(offer_type=offer_type).first()
+                    
+                    if detail_instance:
+                        for attr, value in detail_data.items():
+                            setattr(detail_instance, attr, value)
+                        detail_instance.save()
+                    else:
+                        Offerdetail.objects.create(offer=instance, **detail_data)
+        
+        instance.update_min_values()
+
+        return instance

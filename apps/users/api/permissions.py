@@ -5,7 +5,6 @@ class IsReviewerOrReadOnly(BasePermission):
     Allows only the `reviewer` of a review to edit or delete it.
     Other users have read-only access.
     """
-
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True

@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Min
 
-# Create your models here.
+
 class Offer(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 

@@ -1,10 +1,6 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import InfoViewSet
-
-router = DefaultRouter()
-router.register(r'', InfoViewSet, basename='info')
+from .views import BaseInfoView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', BaseInfoView.as_view(), name='base-info'),
 ]

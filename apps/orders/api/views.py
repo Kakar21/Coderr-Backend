@@ -5,7 +5,9 @@ from .serializers import OrderSerializer
 from .permissions import IsCustomerForPost, IsStaffOrReadOnlyForDestroy
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+from apps.users.models import Profile
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -39,3 +41,45 @@ class OrderViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         
         return Response({}, status=status.HTTP_200_OK)
+
+
+class OrderCountView(APIView):
+    """
+    Returns the number of ongoing orders for a specific business user.
+    """
+    def get(self, request, business_user_id):
+        try:
+            business_user = Profile.objects.get(id=business_user_id)
+        except Profile.DoesNotExist:
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if business_user.type != 'business':
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            order_count = Order.objects.filter(
+                offer_detail__offer__user=business_user.user,
+                status='in_progress'
+            ).count()
+        
+        return Response({"order_count": order_count}, status=status.HTTP_200_OK)
+
+
+class CompletedOrderCountView(APIView):
+    """
+    Returns the number of completed orders for a specific business user.
+    """
+    def get(self, request, business_user_id):
+        try:
+            business_user = Profile.objects.get(id=business_user_id)
+        except Profile.DoesNotExist:
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if business_user.type != 'business':
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            completed_order_count = Order.objects.filter(
+                offer_detail__offer__user=business_user.user,
+            status='completed'
+        ).count()
+        
+        return Response({"completed_order_count": completed_order_count}, status=status.HTTP_200_OK)

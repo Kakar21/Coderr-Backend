@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from .permissions import IsBusinessOrReadOnly
 
+
 class OfferListView(generics.ListCreateAPIView):
     queryset = Offer.objects.all()
     serializer_class = OfferSerializer

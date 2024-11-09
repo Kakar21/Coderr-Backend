@@ -10,7 +10,7 @@ class OfferCreateTest(APITestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.profile = Profile.objects.create(user=self.user)
+        self.profile = Profile.objects.create(user=self.user, type='business')
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         self.url = reverse('offer-list')

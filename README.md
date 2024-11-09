@@ -42,7 +42,7 @@ This is the backend part of the Coderr project, built with Django to run the fre
      from django.core.management.utils import get_random_secret_key
      print(get_random_secret_key())
      ```
-   - Create a file named `.env` in the `join_backend` folder and add your generated key as follows:
+   - Create a file named `.env` in the `coderr_backend` folder and add your generated key as follows:
      ```plaintext
      SECRET_KEY='your_generated_secret_key'
      ```

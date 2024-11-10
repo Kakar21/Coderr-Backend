@@ -9,10 +9,8 @@ This is the backend part of the Coderr project, built with Django to run the fre
 ## Getting Started
 
 1. **Clone the Frontend and Backend Projects**
-   - Clone this backend project
-     ```bash
-     git clone git@github.com:Kakar21/Coderr-Backend.git
-     ```
+   - Clone this backend project.
+   - Clone the frontend project as well (find the frontend [here](https://github.com/Kakar21/Coderr-Frontend)).
 
 2. **Create a Virtual Environment**
    - In the project root, create a virtual environment:
@@ -61,7 +59,8 @@ This is the backend part of the Coderr project, built with Django to run the fre
      ```
 
 7. **Guest Login Setup**
-   - To enable guest login, create a guest user with the credentials provided in the frontend project.
+   - To enable guest login, create two guest users using the credentials provided in the frontend project.
+   - For details on setting up the guest login, refer to the frontend README (available [here](https://github.com/Kakar21/Coderr-Frontend/blob/main/README.md)).
 
 ### You're Done!
 

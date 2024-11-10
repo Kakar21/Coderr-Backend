@@ -8,6 +8,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
+    working_hours = serializers.CharField(required=False, allow_blank=True)
+    description = serializers.CharField(required=False, allow_blank=True)
+    location = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Profile

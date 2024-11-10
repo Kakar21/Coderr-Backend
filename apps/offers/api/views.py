@@ -20,13 +20,13 @@ class OfferListView(generics.ListCreateAPIView):
     ordering_fields = ['updated_at', 'min_price']
     search_fields = ['title', 'description']
     pagination_class = OfferPagination
-    permission_classes = [IsAuthenticated, IsBusinessOrReadOnly]
+    permission_classes = [IsBusinessOrReadOnly]
 
 
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
     serializer_class = OfferDetailSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     http_method_names = ['get', 'patch', 'delete']
 
     def destroy(self, request, *args, **kwargs):
@@ -39,6 +39,7 @@ class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
 class OfferdetailsDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offerdetail.objects.all()
     serializer_class = OfferdetailsSerializer
+    permission_classes = [IsBusinessOrReadOnly]
 
     def perform_update(self, serializer):
         instance = serializer.save()

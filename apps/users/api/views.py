@@ -76,11 +76,9 @@ class ProfileDetail(APIView):
         data.pop('created_at', None)
 
         if data.get('email'):
-            # Überprüfe, ob die E-Mail-Adresse bereits verwendet wird (außer vom aktuellen Benutzer)
             if User.objects.filter(email=data.get('email')).exclude(pk=profile.user.pk).exists():
                 return Response({"detail": "Diese E-Mail-Adresse wird bereits verwendet."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Überprüfe das Format der E-Mail-Adresse
             if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', data.get('email')):
                 return Response({"detail": "E-Mail-Format ist ungültig."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -192,17 +190,6 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated, IsReviewerOrReadOnly]
-
-
-    # def get_object(self):
-    #     """
-    #     Retrieve the review instance and check if the authenticated user is the reviewer.
-    #     """
-    #     review = super().get_object()
-
-    #     if self.request.method in ['PATCH', 'DELETE'] and review.reviewer != self.request.user:
-    #         raise PermissionDenied("Du kannst nur deine eigenen Bewertungen bearbeiten oder löschen.")
-    #     return review
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)

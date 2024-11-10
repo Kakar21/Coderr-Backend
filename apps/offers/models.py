@@ -4,6 +4,19 @@ from django.db.models import Min
 
 
 class Offer(models.Model):
+    """
+    Model for offers
+
+    Attributes:
+        user (ForeignKey): Reference to the user who created the offer.
+        title (CharField): Title of the offer.
+        image (ImageField): Optional image associated with the offer.
+        description (TextField): Detailed description of the offer.
+        created_at (DateTimeField): Timestamp when the offer was created.
+        updated_at (DateTimeField): Timestamp when the offer was last updated.
+        min_price (DecimalField): Minimum price of the offer details.
+        min_delivery_time (PositiveIntegerField): Minimum delivery time in days.
+    """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
@@ -21,6 +34,9 @@ class Offer(models.Model):
         return self.title 
     
     def update_min_values(self):
+        """
+        Updates the minimum price and delivery time for the offer based on its details.
+        """
         min_price = self.details.aggregate(Min('price'))['price__min']
         min_delivery_time = self.details.aggregate(Min('delivery_time_in_days'))['delivery_time_in_days__min']
         
@@ -29,6 +45,18 @@ class Offer(models.Model):
         self.save()
 
 class Offerdetail(models.Model):
+    """
+    Model for offer details, part of an offer
+
+    Attributes:
+        offer (ForeignKey): Reference to the associated offer.
+        title (CharField): Title of the offer package.
+        revisions (IntegerField): Number of revisions allowed.
+        delivery_time_in_days (PositiveIntegerField): Delivery time in days.
+        price (DecimalField): Price of the package.
+        features (JSONField): Features of the package.
+        offer_type (CharField): Type of the package (basic, standard, premium).
+    """
     OFFER_TYPE_CHOICES = [
         ('basic', 'Basic'),
         ('standard', 'Standard'),

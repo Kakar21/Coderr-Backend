@@ -4,6 +4,12 @@ from apps.users.api.serializers import ProfileSerializer
 from django.urls import reverse
 
 class OfferdetailsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for offer details.
+
+    Handles serialization and validation of the Offerdetail model.
+    Ensures data conforms to expected structure and constraints.
+    """
     class Meta:
         model = Offerdetail
         fields = [
@@ -12,17 +18,29 @@ class OfferdetailsSerializer(serializers.ModelSerializer):
         ]
 
     def validate_revisions(self, value):
+        """
+        Ensure revisions are not less than -1.
+        """
         if value < -1:
             raise serializers.ValidationError("Revisions cannot be less than 0.")
         return value
     
     def validate_features(self, value):
+        """
+        Ensure at least one feature is provided.
+        """
         if not value or len(value) < 1:
             raise serializers.ValidationError("At least one feature is required.")
         return value
 
 
 class OfferSerializer(serializers.ModelSerializer):
+    """
+    Serializer for offers.
+
+    Manages serialization and validation of the Offer model.
+    Includes nested serialization for offer details and user profile.
+    """
     details = OfferdetailsSerializer(many=True, required=True, write_only=True)
     user_details = ProfileSerializer(source='user.profile', read_only=True)
 
@@ -33,9 +51,15 @@ class OfferSerializer(serializers.ModelSerializer):
             'updated_at', 'details', 'min_price', 'min_delivery_time', 
             'user_details'
         ]
-        read_only_fields = ['user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time']
+        read_only_fields = [
+            'user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time'
+        ]
 
     def to_representation(self, instance):
+        """
+        Customize representation of the Offer instance.
+        Includes URLs for details.
+        """
         representation = super().to_representation(instance)
         
         details_representation = [
@@ -60,6 +84,10 @@ class OfferSerializer(serializers.ModelSerializer):
         return representation
 
     def validate(self, data):
+        """
+        Validate Offer data.
+        Ensure exactly three offer details are provided.
+        """
         details = self.initial_data.get('details')
         
         if len(details) != 3:
@@ -76,6 +104,10 @@ class OfferSerializer(serializers.ModelSerializer):
         return data
     
     def create(self, validated_data):
+        """
+        Create a new Offer instance.
+        Includes related Offerdetail instances.
+        """
         details_data = validated_data.pop('details')
         user = self.context['request'].user
         offer = Offer.objects.create(user=user, **validated_data)
@@ -89,6 +121,12 @@ class OfferSerializer(serializers.ModelSerializer):
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for detailed offers.
+
+    Provides a detailed view of the Offer model.
+    Includes nested serialization for offer details and user profile.
+    """
     details = OfferdetailsSerializer(many=True, required=False)
     user_details = ProfileSerializer(source='user.profile', read_only=True)
 
@@ -99,9 +137,15 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             'updated_at', 'details', 'min_price', 'min_delivery_time', 
             'user_details'
         ]
-        read_only_fields = ['user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time']
+        read_only_fields = [
+            'user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time'
+        ]
 
     def to_representation(self, instance):
+        """
+        Customize representation of the Offer instance.
+        Focus on user details.
+        """
         representation = super().to_representation(instance)
         user_details = representation.get('user_details')
         if user_details:
@@ -116,6 +160,10 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         return representation
     
     def update(self, instance, validated_data):
+        """
+        Update an existing Offer instance.
+        Includes related Offerdetail instances.
+        """
         details_data = validated_data.pop('details', None)
         instance = super().update(instance, validated_data)
         

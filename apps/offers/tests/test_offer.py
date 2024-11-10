@@ -9,6 +9,7 @@ from rest_framework import status
 class OfferCreateTest(APITestCase):
 
     def setUp(self):
+        # Create a test user and profile, and authenticate the client
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.profile = Profile.objects.create(user=self.user, type='business')
         self.token = Token.objects.create(user=self.user)
@@ -16,6 +17,7 @@ class OfferCreateTest(APITestCase):
         self.url = reverse('offer-list')
 
     def test_create_offer_with_details(self):
+        # Test creating an offer with multiple details
         data = {
             "title": "Test Offer",
             "description": "A test description for the offer",
@@ -49,6 +51,7 @@ class OfferCreateTest(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
         
+        # Assert that the offer is created successfully
         self.assertEqual(response.status_code, 201)
         
         offer = Offer.objects.get(title="Test Offer")
@@ -56,9 +59,11 @@ class OfferCreateTest(APITestCase):
         self.assertEqual(offer.title, "Test Offer")
         self.assertEqual(offer.description, "A test description for the offer")
         
+        # Check minimum price and delivery time
         self.assertEqual(offer.min_price, 100.00)
         self.assertEqual(offer.min_delivery_time, 1)
         
+        # Verify the details count and types
         details = Offerdetail.objects.filter(offer=offer)
         self.assertEqual(details.count(), 3)
         
@@ -68,6 +73,7 @@ class OfferCreateTest(APITestCase):
 
 class OfferDetailViewTests(APITestCase):
     def setUp(self):
+        # Set up a test user, profile, and offer with details
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.profile = Profile.objects.create(user=self.user)
         self.token = Token.objects.create(user=self.user)
@@ -91,6 +97,7 @@ class OfferDetailViewTests(APITestCase):
         self.url = reverse('offer-detail', kwargs={'pk': self.offer.pk})
 
     def test_patch_offer_details(self):
+        # Test updating offer details with a PATCH request
         patch_data = {
             "title": "Updated Test Offer",
             "details": [
@@ -107,6 +114,7 @@ class OfferDetailViewTests(APITestCase):
 
         response = self.client.patch(self.url, patch_data, format='json')
         
+        # Assert that the update is successful
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         self.basic_detail.refresh_from_db()
@@ -117,8 +125,10 @@ class OfferDetailViewTests(APITestCase):
         self.assertIn("Flyer", self.basic_detail.features)
 
     def test_delete_offer(self):
+        # Test deleting an offer
         response = self.client.delete(self.url)
         
+        # Assert that the offer is deleted successfully
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {})
         

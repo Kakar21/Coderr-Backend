@@ -10,6 +10,13 @@ from rest_framework.views import APIView
 from apps.users.models import Profile
 
 class OrderViewSet(viewsets.ModelViewSet):
+    """
+    This ViewSet class provides CRUD functionalities for orders.
+    - Authenticated users can view their own orders.
+    - Staff members can view all orders.
+    - Only the status of an order can be updated.
+    - Orders can be deleted by staff users.
+    """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated, IsStaffOrReadOnlyForDestroy, IsCustomerForPost]
 

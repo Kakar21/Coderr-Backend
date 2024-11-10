@@ -11,6 +11,18 @@ from apps.offers.models import Offer
 class BaseInfoView(APIView):
     """
     Returns general platform information.
+
+    This view provides a summary of the platform's data, including:
+    - Total number of reviews.
+    - Average rating of all reviews.
+    - Total number of business profiles.
+    - Total number of offers.
+
+    Permission:
+    - AllowAny: This view is accessible to any user, authenticated or not.
+
+    Methods:
+    - GET: Returns a JSON response with the platform's data summary.
     """
     permission_classes = [AllowAny]
 

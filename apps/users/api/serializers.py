@@ -4,7 +4,11 @@ from apps.users.models import Profile
 from django.contrib.auth.models import User
 from apps.users.models import Review
 
+
 class ProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Profile model. Provides fields for user details and additional profile information.
+    """
     username = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
@@ -28,6 +32,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     
 
 class LoginSerializer(serializers.Serializer):
+    """
+    Serializer for user login. Validates username and password.
+    """
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
@@ -48,6 +55,9 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration. Validates and creates a new user.
+    """
     repeated_password = serializers.CharField(write_only=True)
     type = serializers.CharField(write_only=True)
 
@@ -97,6 +107,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
     
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Review model. Validates and manages review creation and updates.
+    """
     class Meta:
         model = Review
         fields = ['id', 'business_user', 'reviewer', 'rating', 'description', 'created_at', 'updated_at']
@@ -106,11 +119,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
 
         if self.context['request'].method == "POST":
-            # if user.profile.type != 'customer':
-            #     raise serializers.ValidationError(
-            #         detail={"error": "Nur Kunden können Bewertungen abgeben."},
-            #         code=status.HTTP_403_FORBIDDEN)
-        
             if Profile.objects.get(user=data['business_user']).type != 'business':
                 raise serializers.ValidationError(
                     detail={"error": "Es können nur Geschäftsnutzer bewertet werden."},

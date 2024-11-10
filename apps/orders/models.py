@@ -4,6 +4,28 @@ from django.conf import settings
 
 
 class Order(models.Model):
+    """
+    Order model representing a customer's order for a specific offer package.
+
+    Attributes:
+        customer_user (ForeignKey): Reference to the user who placed the order.
+        offer_detail (ForeignKey): Reference to the specific offer package.
+        status (CharField): Current status of the order.
+        created_at (DateTimeField): Timestamp when the order was created.
+        updated_at (DateTimeField): Timestamp when the order was last updated.
+
+    Properties:
+        business_user: Returns the user associated with the offer.
+        title: Returns the title of the offer.
+        revisions: Returns the number of revisions allowed for the offer.
+        delivery_time_in_days: Returns the delivery time in days for the order.
+        price: Returns the price of the order.
+        features: Returns the features of the package.
+        offer_type: Returns the type of the package.
+
+    Methods:
+        __str__: Returns a string representation of the order.
+    """
     STATUS_CHOICES = [
         ('in_progress', 'In Progress'),
         ('cancelled', 'Cancelled'),

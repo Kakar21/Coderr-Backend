@@ -13,6 +13,21 @@ from .permissions import IsBusinessOrReadOnly
 
 
 class OfferListView(generics.ListCreateAPIView):
+    """
+    View for listing and creating offers.
+
+    Filtering, ordering, and searching are supported.
+    Offer filter:
+    - creator_id: Filter by creator ID.
+    - min_price: Filter by minimum price.
+    - max_delivery_time: Filter by maximum delivery time.
+    
+    Permission:
+    - IsBusinessOrReadOnly: Only business users can create, update, and delete offers.
+
+    
+
+    """
     queryset = Offer.objects.all()
     serializer_class = OfferSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
@@ -24,6 +39,15 @@ class OfferListView(generics.ListCreateAPIView):
 
 
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View for retrieving, updating, and deleting offers.
+
+    Permission:
+    - IsOwnerOrReadOnly: Only the owner of the offer can update or delete it.
+
+    Methods:
+        destroy: Deletes an offer instance and returns a 200 OK response.
+    """
     queryset = Offer.objects.all()
     serializer_class = OfferDetailSerializer
     permission_classes = [IsOwnerOrReadOnly]
@@ -37,6 +61,15 @@ class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class OfferdetailsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View for retrieving, updating, and deleting offer details.
+
+    Permission:
+    - IsBusinessOrReadOnly: Only business users can create, update, and delete offer details.
+
+    Methods:
+        perform_update: Updates an offer detail instance and updates related offer's minimum values.
+    """
     queryset = Offerdetail.objects.all()
     serializer_class = OfferdetailsSerializer
     permission_classes = [IsBusinessOrReadOnly]

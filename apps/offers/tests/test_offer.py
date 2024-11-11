@@ -129,7 +129,7 @@ class OfferDetailViewTests(APITestCase):
         response = self.client.delete(self.url)
         
         # Assert that the offer is deleted successfully
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(response.data, {})
         
         with self.assertRaises(Offer.DoesNotExist):

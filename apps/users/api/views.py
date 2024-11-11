@@ -47,7 +47,8 @@ class ProfileList(generics.ListAPIView):
                 "tel": item["tel"],
                 "description": item["description"],
                 "working_hours": item["working_hours"],
-                "type": item["type"]
+                "type": item["type"],
+                "uploaded_at": item["created_at"]
             })
         return Response(customized_data, status=status.HTTP_200_OK)
 

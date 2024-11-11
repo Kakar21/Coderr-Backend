@@ -10,6 +10,8 @@ class OfferdetailsSerializer(serializers.ModelSerializer):
     Handles serialization and validation of the Offerdetail model.
     Ensures data conforms to expected structure and constraints.
     """
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
     class Meta:
         model = Offerdetail
         fields = [
@@ -41,8 +43,9 @@ class OfferSerializer(serializers.ModelSerializer):
     Manages serialization and validation of the Offer model.
     Includes nested serialization for offer details and user profile.
     """
-    details = OfferdetailsSerializer(many=True, required=True, write_only=True)
+    details = OfferdetailsSerializer(many=True, required=True)
     user_details = ProfileSerializer(source='user.profile', read_only=True)
+    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False, read_only=True)
 
     class Meta:
         model = Offer
@@ -62,13 +65,15 @@ class OfferSerializer(serializers.ModelSerializer):
         """
         representation = super().to_representation(instance)
         
-        details_representation = [
-            {
-                "id": detail.id,
-                "url": reverse('offerdetail-detail', kwargs={'pk': detail.id})
-            }
-            for detail in instance.details.all()
-        ]
+        if self.context['request'].method == 'GET':
+            details_representation = [
+                {
+                    "id": detail.id,
+                    "url": reverse('offerdetail-detail', kwargs={'pk': detail.id})
+                }
+                for detail in instance.details.all()
+            ]
+            representation['details'] = details_representation
 
         user_details = representation.get('user_details')
         if user_details:
@@ -78,7 +83,6 @@ class OfferSerializer(serializers.ModelSerializer):
                 'username': user_details.get('username'),
             }
 
-        representation['details'] = details_representation
         representation['user_details'] = filtered_user_details
 
         return representation
